@@ -13,6 +13,7 @@ class Migrations
 	protected $config;
 	protected $driver;
 	protected $migrations;
+        protected $migrations_folders;
 	public $output = NULL;
 
 	/**
@@ -35,11 +36,6 @@ class Migrations
 		$this->driver = new $driver(Arr::get(Kohana::$config->load('migrations'), 'database', 'default'));
 
 		$this->driver->versions()->init();
-
-		if( ! is_dir($this->config['path']))
-		{
-			mkdir($this->config['path'], 0777, TRUE);
-		}
 	}
 
 	public function set_executed($version)
@@ -70,7 +66,7 @@ class Migrations
 		$filename = sprintf("%d_$name.php", time());
 
 		file_put_contents(
-			$this->config['path'].DIRECTORY_SEPARATOR.$filename,
+			DEFAULT_MIGRATION_DIR . DIRECTORY_SEPARATOR . $filename,
 			strtr($template, array(
 				'{up}' => join("\n", array_map('Migrations::indent', $actions->up)),
 				'{down}' => join("\n", array_map('Migrations::indent', $actions->down)),
@@ -86,7 +82,43 @@ class Migrations
 		return "\t\t$action";
 	}
 
-	/**
+        /**
+         * Get filepath for migration by version
+         *
+         * @param integer $version  Migration version number
+         * @return type
+         */
+        public function get_migration_filepath($version)
+        {
+            $files = false;
+            $migrations = Kohana::list_files('migrations');
+            $folders = $this->get_migration_folders();
+            foreach($folders as $folder) {
+                $files = glob(sprintf($folder . DIRECTORY_SEPARATOR . '%d_*.php', $version));
+                if (!empty($file)) {
+                    break;
+                }
+            }
+            return $files;
+        }
+
+        /**
+         * Get migrations folders in cascading filesystem
+         *
+         * @return array
+         */
+        public function get_migration_folders()
+        {
+            if (empty($this->migrations_folders)) {
+                $migrations = Kohana::list_files('migrations');
+                foreach ($migrations as $migration) {
+                    $this->migrations_folders[] = dirname($migration);
+                }
+            }
+            return $this->migrations_folders;
+        }
+
+        /**
 	 * Loads a migration
 	 *
 	 * @param   integer   Migration version number
@@ -94,8 +126,7 @@ class Migrations
 	 */
 	public function load_migration($version)
 	{
-		$f = glob(sprintf($this->config['path'] . DIRECTORY_SEPARATOR . '%d_*.php', $version));
-
+		$f = $this->get_migration_filepath($version);
 		if (count($f) > 1)
 			throw new Migration_Exception('Only one migration per step is permitted, there are :count of version :version', array(':count' => count($f), ':version' => $version));
 
@@ -129,7 +160,9 @@ class Migrations
 	{
 		if ( ! $this->migrations)
 		{
-			$migrations = glob($this->config['path'] . DIRECTORY_SEPARATOR . '*' . EXT);
+                        // Use Kohana cascading file system for find migrations
+                        $migrations = Kohana::list_files('migrations');
+
 			$ids = array();
 			foreach ((array) $migrations as $file)
 			{

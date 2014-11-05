@@ -2,6 +2,5 @@
 
 return array(
 	'log' => NULL,
-	'path' => APPPATH.'migrations',
 	'database' => 'default',
 );
