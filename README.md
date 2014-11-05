@@ -12,6 +12,9 @@ Migrations module tracks which migrations have already been run so all you have 
 
 Migrations also allow you to describe these transformations using PHP. The great thing about this is that it is database independent: you don't need to worry about the precise syntax of CREATE TABLE any more than you worry about variations on SELECT * (you can drop down to raw SQL for database specific features). For example you could use SQLite3 in development, but MySQL in production.
 
+Migrations uses cascading file system to place the migrations files. For to place migrations files use *migrations* directory. For example *application/migrations*.
+[See more for Cascading Filesystem](http://kohanaframework.org/3.3/guide/kohana/files).
+
 Dependencies
 ------------
 
@@ -21,7 +24,6 @@ Options
 -------
 
 * log - this is the logging function to be used, to integrate into whatever controller/backend you are using
-* path - the path to where the migrations will be stored, defaults to APPPATH/migrations
 * type - the driver for the backend for which migrations have been already executed as well as the migrations themselves, defaults to mysql
 
 Command line tools
@@ -99,6 +101,8 @@ class Create_User extends Migration
 }
 ?>
 ```
+
+By default, the new migration file created in APPPATH/migrations directory.
 
 There are several patterns in the filename that will be recognized and converted to actual helper methods in the up/down methods of the migration.
 
