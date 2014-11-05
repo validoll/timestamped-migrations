@@ -95,7 +95,7 @@ class Migrations
             $folders = $this->get_migration_folders();
             foreach($folders as $folder) {
                 $files = glob(sprintf($folder . DIRECTORY_SEPARATOR . '%d_*.php', $version));
-                if (!empty($file)) {
+                if (!empty($files)) {
                     break;
                 }
             }
