@@ -24,7 +24,9 @@ Options
 -------
 
 * log - this is the logging function to be used, to integrate into whatever controller/backend you are using
+* path - the path to where the migrations will be stored, defaults to APPPATH/migrations (DEPRECATED)
 * type - the driver for the backend for which migrations have been already executed as well as the migrations themselves, defaults to mysql
+* dir - the directory name where the migrations will be stored in Kohana cascading filesystem
 
 Command line tools
 ------------------
