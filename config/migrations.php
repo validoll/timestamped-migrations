@@ -2,5 +2,8 @@
 
 return array(
 	'log' => NULL,
+    	'path' => APPPATH.'migrations',
 	'database' => 'default',
+	// Name of directory in cascading file system
+	'dir' => 'migrations',
 );

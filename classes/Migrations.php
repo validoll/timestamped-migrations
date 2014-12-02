@@ -3,18 +3,24 @@
 /**
  * Migrations class.
  *
- * @package    Despark/timestamped-migrations
- * @author     Ivan Kerin
+ * @package	Despark/timestamped-migrations
+ * @author	Ivan Kerin
  * @copyright  (c) 2011-2014 OpenBuildings Inc.
- * @license    http://creativecommons.org/licenses/by-sa/3.0/legalcode
+ * @license	http://creativecommons.org/licenses/by-sa/3.0/legalcode
  */
 class Migrations
 {
 	protected $config;
 	protected $driver;
 	protected $migrations;
-        protected $migrations_folders;
 	public $output = NULL;
+
+	/**
+	 * File finder class
+	 *
+	 * @var File_Finder
+	 */
+	protected $finder;
 
 	/**
 	 * Intialize migration library
@@ -34,6 +40,8 @@ class Migrations
 
 		// Create the database connection instance
 		$this->driver = new $driver(Arr::get(Kohana::$config->load('migrations'), 'database', 'default'));
+
+		$this->finder = File_Finder::finder();
 
 		$this->driver->versions()->init();
 	}
@@ -66,7 +74,7 @@ class Migrations
 		$filename = sprintf("%d_$name.php", time());
 
 		file_put_contents(
-			DEFAULT_MIGRATION_DIR . DIRECTORY_SEPARATOR . $filename,
+			$this->config['path'].DIRECTORY_SEPARATOR.$filename,
 			strtr($template, array(
 				'{up}' => join("\n", array_map('Migrations::indent', $actions->up)),
 				'{down}' => join("\n", array_map('Migrations::indent', $actions->down)),
@@ -82,43 +90,19 @@ class Migrations
 		return "\t\t$action";
 	}
 
-        /**
-         * Get filepath for migration by version
-         *
-         * @param integer $version  Migration version number
-         * @return type
-         */
-        public function get_migration_filepath($version)
-        {
-            $files = false;
-            $migrations = Kohana::list_files('migrations');
-            $folders = $this->get_migration_folders();
-            foreach($folders as $folder) {
-                $files = glob(sprintf($folder . DIRECTORY_SEPARATOR . '%d_*.php', $version));
-                if (count($files)) {
-                    break;
-                }
-            }
-            return $files;
-        }
+	/**
+	 * Get filepath for migration by version
+	 *
+	 * @param integer $version  Migration version number
+	 * @return type
+	 */
+	public function get_migration_filepath($version)
+	{
+		$file = $this->finder->find($version);
+		return $file;
+	}
 
-        /**
-         * Get migrations folders in cascading filesystem
-         *
-         * @return array
-         */
-        public function get_migration_folders()
-        {
-            if (empty($this->migrations_folders)) {
-                $migrations = Kohana::list_files('migrations');
-                foreach ($migrations as $migration) {
-                    $this->migrations_folders[] = dirname($migration);
-                }
-            }
-            return $this->migrations_folders;
-        }
-
-        /**
+	/**
 	 * Loads a migration
 	 *
 	 * @param   integer   Migration version number
@@ -160,8 +144,8 @@ class Migrations
 	{
 		if ( ! $this->migrations)
 		{
-                        // Use Kohana cascading file system for find migrations
-                        $migrations = Kohana::list_files('migrations');
+			// Use Kohana cascading file system for find migrations
+			$migrations = $this->finder->findAll();
 
 			$ids = array();
 			foreach ((array) $migrations as $file)
