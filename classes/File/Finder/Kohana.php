@@ -61,7 +61,6 @@ class File_Finder_Kohana implements File_Finderinterface {
 		$folders = static::get_migration_folders();
 		foreach($folders as $folder)
 		{
-		    var_dump(sprintf($folder.DIRECTORY_SEPARATOR.'%d_*'.EXT, $filename));
 			$file = glob(sprintf($folder.DIRECTORY_SEPARATOR.'%d_*'.EXT, $filename));
 			// Uses the first file found
 			if (!empty($file))
