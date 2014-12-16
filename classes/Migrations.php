@@ -73,6 +73,11 @@ class Migrations
 		$class_name = str_replace(' ', '_', ucwords(str_replace('_',' ',$name)));
 		$filename = sprintf("%d_$name.php", time());
 
+		// Create migrations directory if nt exists
+		if (!file_exists($this->config['path'])) {
+		    mkdir($this->config['path']);
+		}
+
 		file_put_contents(
 			$this->config['path'].DIRECTORY_SEPARATOR.$filename,
 			strtr($template, array(
